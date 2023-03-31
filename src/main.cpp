@@ -9,6 +9,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+
 #include <learnopengl/filesystem.h>
 #include <learnopengl/shader.h>
 #include <learnopengl/camera.h>
@@ -21,6 +22,7 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
+unsigned int loadCubemap(vector<std::string> faces);
 unsigned int loadTexture(const char *path);
 
 // settings
@@ -163,17 +165,20 @@ int main() {
 
     // build and compile shaders
     // -------------------------
+    Shader skyboxShader("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
     Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
     Shader svetloShader("svetlo.vs", "svetlo.fs");
     Shader textureShader("resources/shaders/texture.vs","resources/shaders/texture.fs");
+
 
     // shader configuration
     // --------------------
     ourShader.use();
     // load models
     // -----------
-    Model ourModel("resources/objects/backpack/backpack.obj");
-    ourModel.SetShaderTextureNamePrefix("material.");
+    //Model ourModel("resources/objects/dojo/Paper_Dojo_VF.obj");
+    //ourModel.SetShaderTextureNamePrefix("material.");
+    Model tableModel(FileSystem::getPath("resources/objects/dining_table/dining_table.obj"));
 
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
@@ -208,6 +213,89 @@ int main() {
             -10.0f, 0.0f, -10.0f,  0.0f, 1.0f,
             10.0f, 0.0f, -10.0f,  1.0f, 1.0f
     };
+
+
+    float skyboxVertices[] = {
+            // aPos
+            -1.0f,  1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f,  -1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+
+            -1.0f, -1.0f,  1.0f,
+            -1.0f, -1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f,  1.0f,
+            -1.0f, -1.0f,  1.0f,
+
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+
+            -1.0f, -1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f, -1.0f,  1.0f,
+            -1.0f, -1.0f,  1.0f,
+
+            -1.0f,  1.0f, -1.0f,
+            1.0f,  1.0f, -1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f, -1.0f,
+
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+            1.0f, -1.0f,  1.0f
+    };
+
+    // configuring Skybox
+
+    unsigned int skyboxVAO, skyboxVBO;
+    glGenVertexArrays(1, &skyboxVAO);
+    glGenBuffers(1, &skyboxVBO);
+    glBindVertexArray(skyboxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+    // order for skybox: x+, x-, y+, y-, z+, z-
+    // 1 3 6 5 2 4 -> works for skybox2 :)
+    // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
+    vector<std::string> faces{
+            FileSystem::getPath("resources/textures/skybox2/yellowcloud_rt.jpg"),
+            FileSystem::getPath("resources/textures/skybox2/yellowcloud_up.jpg"),
+            FileSystem::getPath("resources/textures/skybox2/yellowcloud_lf.jpg"),
+            FileSystem::getPath("resources/textures/skybox2/yellowcloud_dn.jpg"),
+            FileSystem::getPath("resources/textures/skybox2/yellowcloud_ft.jpg"),
+            FileSystem::getPath("resources/textures/skybox2/yellowcloud_bk.jpg"),
+
+
+    };
+    stbi_set_flip_vertically_on_load(true);
+
+    unsigned int cubemapTexture = loadCubemap(faces);
+
+    // configure shaders
+
+//    shader.use();
+//    shader.setInt("Tex", 0);
+
+    skyboxShader.use();
+    skyboxShader.setInt("skyboxTex", 0);
+
 
     // plane VAO
     unsigned int planeVAO, planeVBO;
@@ -279,7 +367,14 @@ int main() {
         glClearColor(programState->clearColor.r, programState->clearColor.g, programState->clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // don't forget to enable shader before setting uniforms
+        glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT,
+                                                0.1f, 100.0f);
+        glm::mat4 view = programState->camera.GetViewMatrix();
+        /*  objectShader.use();
+          objectShader.setMat4("projection", projection);
+          objectShader.setMat4("view", view); */
+
+        /* don't forget to enable shader before setting uniforms
         ourShader.use();
         pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
         ourShader.setVec3("pointLight.position", pointLight.position);
@@ -302,7 +397,13 @@ int main() {
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::scale(model, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
-        ourModel.Draw(ourShader);
+        ourModel.Draw(ourShader); */
+
+        /* glm::mat4 model = glm::mat4(1.0f);
+         model = glm::translate(model, glm::vec3(0.0f, -5.0f, 0.0f));
+         model = glm::scale(model, glm::vec3(1.4f, 1.4f, 1.4f));
+         objectShader.setMat4("model", model);
+         tableModel.Draw(objectShader); */
 
         svetloShader.use();
         svetloShader.setMat4("projection", projection);
@@ -311,6 +412,13 @@ int main() {
         svetloShader.setVec3("viewPos", programState->camera.Position);
         svetloShader.setVec3("lightPos", lightPos);
         svetloShader.setInt("blinn", blinn);
+
+        /*  model = glm::mat4(1.0f);
+          model = glm::translate(model, glm::vec3(0.0f, -5.0f, 0.0f));
+          model = glm::scale(model, glm::vec3(20.0f, 1.0f, 20.0f));
+          objectShader.setMat4("model", model);
+          glBindVertexArray(planeVAO);
+          glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); */
 
 
         // floor
@@ -328,7 +436,25 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, tatamiTexture);
         textureShader.setMat4("model", glm::mat4(1.0f));
         glDrawArrays(GL_TRIANGLES, 0, 6);
-       // glBindVertexArray(0);
+        // glBindVertexArray(0);
+
+        //draw skybox as last
+        glDepthFunc(GL_LEQUAL);
+        skyboxShader.use();
+        //model = glm::mat4(1.0f);
+        projection = glm::perspective(glm::radians(programState->camera.Zoom),
+                                      (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
+        view = glm::mat4(glm::mat3(programState->camera.GetViewMatrix()));
+        skyboxShader.setMat4("view", view);
+        skyboxShader.setMat4("projection", projection);
+
+        // skybox cube
+        glBindVertexArray(skyboxVAO);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
+        glDepthFunc(GL_LESS); //depth function back to normal state.
 
         std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
 
@@ -459,6 +585,36 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
     }
+}
+
+
+unsigned int loadCubemap(vector<std::string> faces)
+{
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+    int width, height, nrChannels;
+    for (unsigned int i = 0; i < faces.size(); i++)
+    {
+        unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+        if (data)
+        {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            stbi_image_free(data);
+        }
+        else
+        {
+            std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
+            stbi_image_free(data);
+        }
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    return textureID;
 }
 
 
