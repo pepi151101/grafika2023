@@ -272,15 +272,14 @@ int main() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
     // order for skybox: x+, x-, y+, y-, z+, z-
-    // 1 3 6 5 2 4 -> works for skybox2 :)
     // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
     vector<std::string> faces{
-            FileSystem::getPath("resources/textures/skybox2/yellowcloud_rt.jpg"),
-            FileSystem::getPath("resources/textures/skybox2/yellowcloud_up.jpg"),
-            FileSystem::getPath("resources/textures/skybox2/yellowcloud_lf.jpg"),
-            FileSystem::getPath("resources/textures/skybox2/yellowcloud_dn.jpg"),
-            FileSystem::getPath("resources/textures/skybox2/yellowcloud_ft.jpg"),
-            FileSystem::getPath("resources/textures/skybox2/yellowcloud_bk.jpg"),
+            FileSystem::getPath("resources/textures/skybox2/front.jpg"),
+            FileSystem::getPath("resources/textures/skybox2/back.jpg"),
+            FileSystem::getPath("resources/textures/skybox2/top.jpg"),
+            FileSystem::getPath("resources/textures/skybox2/bottom.jpg"),
+            FileSystem::getPath("resources/textures/skybox2/left.jpg"),
+            FileSystem::getPath("resources/textures/skybox2/right.jpg")
 
 
     };
