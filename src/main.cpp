@@ -136,7 +136,7 @@ int main() {
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
-    //glfwSetKeyCallback(window, key_callback);
+    glfwSetKeyCallback(window, key_callback);
     // tell GLFW to capture our mouse
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -173,8 +173,7 @@ int main() {
     // -------------------------
     Shader skyboxShader("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
     Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
-  //  Shader textureShader("resources/shaders/texture.vs","resources/shaders/texture.fs");
-  //  Shader lightSource("resources/shaders/light_source.vs", "resources/shaders/light_source.fs");
+    Shader textureShader("resources/shaders/texture.vs","resources/shaders/texture.fs");
     Shader hdrShader("resources/shaders/hdr.vs","resources/shaders/hdr.fs");
     Shader bloomShader("resources/shaders/bloom.vs","resources/shaders/bloom.fs");
 
@@ -239,8 +238,6 @@ int main() {
     // load models
     Model balon("resources/objects/balon/Textures/Air_Balloon.obj", true);
     balon.SetShaderTextureNamePrefix("material.");
-    Model lightBall("resources/objects/ball/ball.obj",true);
-    lightBall.SetShaderTextureNamePrefix("material.");
     Model airplane("resources/objects/airplane/source/source/a380-2/A380.obj",true);
     airplane.SetShaderTextureNamePrefix("material.");
 
@@ -257,15 +254,16 @@ int main() {
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
     float planeVertices[] = {
-            // positions            // normals         // texcoords
-            10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
-            -10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
-            -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+            // positions                       // normals            // texcoords
+            20.0f, -0.5f,  20.0f,  0.0f, 1.0f, 0.0f,  20.0f,  0.0f,
+            -20.0f, -0.5f,  20.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+            -20.0f, -0.5f, -20.0f,  0.0f, 1.0f, 0.0f,   0.0f, 20.0f,
 
-            10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
-            -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
-            10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
+            20.0f, -0.5f,  20.0f,  0.0f, 1.0f, 0.0f,  20.0f,  0.0f,
+            -20.0f, -0.5f, -20.0f,  0.0f, 1.0f, 0.0f,   0.0f, 20.0f,
+            20.0f, -0.5f, -20.0f,  0.0f, 1.0f, 0.0f,  20.0f, 20.0f
     };
+
     // plane VAO
     unsigned int planeVAO, planeVBO;
     glGenVertexArrays(1, &planeVAO);
@@ -280,6 +278,10 @@ int main() {
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glBindVertexArray(0);
+
+    // load textures
+    // -------------
+    unsigned int floorTexture = loadTexture(FileSystem::getPath("resources/textures/parket.jpg").c_str());
 
     float skyboxVertices[] = {
             // aPos
@@ -352,6 +354,8 @@ int main() {
 
     // configure shaders
     ourShader.use();
+    textureShader.use();
+    textureShader.setInt("texture1",0);
 
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
@@ -363,11 +367,6 @@ int main() {
     hdrShader.setInt("hdrBuffer", 0);
     hdrShader.setInt("bloomBlur", 1);
 
-
-    // load textures
-    // -------------
-    unsigned int floorTexture = loadTexture(FileSystem::getPath("resources/textures/parket.jpg").c_str());
-
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -377,6 +376,7 @@ int main() {
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window)) {
+
         // per-frame time logic
         // --------------------
         float currentFrame = glfwGetTime();
@@ -447,10 +447,6 @@ int main() {
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
 
-        //Enabling back face culling
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
-
         //****************************************************************************************
         // baloniii
         glm::mat4 model = glm::mat4(1.0f);
@@ -460,7 +456,6 @@ int main() {
         ourShader.setMat4("model", model);
         balon.Draw(ourShader);
 
-        model = glm::mat4(1.0f);
         model = glm::mat4(1.0f);
         model = glm::translate(model,glm::vec3(-1.0f,(5.0f+ sin(glfwGetTime())/6),7.0f));
         model = glm::scale(model, glm::vec3(1.2f,1.5f,1.2f));
@@ -482,15 +477,22 @@ int main() {
         ourShader.setMat4("model", model);
         airplane.Draw(ourShader);
 
-        //floor
+
+        //Enabling back face culling
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+
+        textureShader.use();
+        // floor
         glBindVertexArray(planeVAO);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, floorTexture);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
+
         //draw skybox as last
 
-        glDepthFunc(GL_LEQUAL);
+       glDepthFunc(GL_LEQUAL);
         skyboxShader.use();
         model = glm::mat4(1.0f);
        projection = glm::perspective(glm::radians(camera.Zoom),
@@ -615,6 +617,13 @@ void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
 
+    //aero
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+        camera.ProcessKeyboard(UP, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        camera.ProcessKeyboard(DOWN, deltaTime);
+
 
     if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS && !hdrKeyPressed)
     {
@@ -647,14 +656,6 @@ void processInput(GLFWwindow *window) {
     {
         exposure += 0.005f;
     }
-
-    //aero
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-        aeroPos.y += deltaTime;
-        std::cout << aeroPos.y << std::endl;
-    }
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        aeroPos.y -= deltaTime;
 
 
 }
@@ -764,7 +765,6 @@ unsigned int loadTexture(char const * path)
 
 void DrawImGui(ProgramState *programState) {
 
-    //std::cout << "treba da radi " << std::endl;
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -773,29 +773,25 @@ void DrawImGui(ProgramState *programState) {
     {
         static float f = 0.0f;
         ImGui::Begin("Hello window");
-        ImGui::Text("Find three hot air balloons. "
-                    "That's where the finish line is.");
-        ImGui::SliderFloat("Float slider", &f, 0.0, 1.0);
-        ImGui::ColorEdit3("Background color", (float *) &programState->clearColor);
-        ImGui::DragFloat3("Backpack position", (float*)&programState->backpackPosition);
-        ImGui::DragFloat("Backpack scale", &programState->backpackScale, 0.05, 0.1, 4.0);
-
-        ImGui::DragFloat("pointLight.constant", &programState->pointLight.constant, 0.05, 0.0, 1.0);
-        ImGui::DragFloat("pointLight.linear", &programState->pointLight.linear, 0.05, 0.0, 1.0);
-        ImGui::DragFloat("pointLight.quadratic", &programState->pointLight.quadratic, 0.05, 0.0, 1.0);
+        ImGui::Text("Use WASD and UP/DOWN arrays to move the plane. ");
+        ImGui::Text("Fly away to the finish line :)");
         ImGui::End();
     }
 
-    {
-        ImGui::Begin("Camera info");
-        const Camera& c = programState->camera;
-        ImGui::Text("Camera position: (%f, %f, %f)", c.Position.x, c.Position.y, c.Position.z);
-        ImGui::Text("(Yaw, Pitch): (%f, %f)", c.Yaw, c.Pitch);
-        ImGui::Text("Camera front: (%f, %f, %f)", c.Front.x, c.Front.y, c.Front.z);
-        ImGui::Checkbox("Camera mouse update", &programState->CameraMouseMovementUpdateEnabled);
-        ImGui::End();
-    }
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+        programState->ImGuiEnabled = !programState->ImGuiEnabled;
+        if (programState->ImGuiEnabled) {
+            programState->CameraMouseMovementUpdateEnabled = false;
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        } else {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        }
+    }
 }
