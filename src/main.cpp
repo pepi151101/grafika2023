@@ -29,12 +29,10 @@ void renderQuad();
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-bool blinn = false;
-bool blinnKeyPressed = false;
 
 bool hdr = true;
 bool hdrKeyPressed = false;
-bool bloom = true;
+bool bloom = false;
 bool bloomKeyPressed = false;
 float exposure = 1.0f;
 
@@ -43,6 +41,9 @@ Camera camera(glm::vec3(4.0f, 5.0f, 22.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
+
+//aero
+glm::vec3 aeroPos;
 
 
 // timing
@@ -69,7 +70,7 @@ struct ProgramState {
     float backpackScale = 1.0f;
     PointLight pointLight;
     ProgramState()
-            : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
+            : camera(glm::vec3(-10.0f, -10.0f, -13.0f)) {}
 
     void SaveToFile(std::string filename);
 
@@ -130,6 +131,7 @@ int main() {
         glfwTerminate();
         return -1;
     }
+
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
@@ -144,48 +146,40 @@ int main() {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
-    // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
-    stbi_set_flip_vertically_on_load(true);
 
     programState = new ProgramState;
     programState->LoadFromFile("resources/program_state.txt");
     if (programState->ImGuiEnabled) {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
+
     // Init Imgui
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     (void) io;
 
-
-
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
 
     // configure global opengl state
     // -----------------------------
-
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-
     // build and compile shaders
     // -------------------------
     Shader skyboxShader("resources/shaders/skybox.vs", "resources/shaders/skybox.fs");
     Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
-  //  Shader svetloShader("svetlo.vs", "svetlo.fs");
-    Shader textureShader("resources/shaders/texture.vs","resources/shaders/texture.fs");
-    Shader lightSource("resources/shaders/light_source.vs", "resources/shaders/light_source.fs");
-   // Shader aloeShader("resources/shaders/balon.vs", "resources/shaders/balon.fs");
+  //  Shader textureShader("resources/shaders/texture.vs","resources/shaders/texture.fs");
+  //  Shader lightSource("resources/shaders/light_source.vs", "resources/shaders/light_source.fs");
     Shader hdrShader("resources/shaders/hdr.vs","resources/shaders/hdr.fs");
     Shader bloomShader("resources/shaders/bloom.vs","resources/shaders/bloom.fs");
 
 
     // setting point light
-    glm::vec3 lightPos(1.0f, 1.0f, 1.0f);
     glm::vec3 spotlights[] = {
             glm::vec3(-6.0f, 1.3f, 2.0f),
             glm::vec3(-4.0f, 0.5f, -3.0f),
@@ -242,22 +236,13 @@ int main() {
             std::cout << "Framebuffer not complete!" << std::endl;
     }
 
-
-    // shader configuration
-    // --------------------
-    ourShader.use();
     // load models
-    // -----------
-    //Model ourModel("resources/objects/dojo/Paper_Dojo_VF.obj");
-    //ourModel.SetShaderTextureNamePrefix("material.");
-    //Model tableModel(FileSystem::getPath("resources/objects/dining_table/dining_table.obj"));
-    // load models
-    // -----------
-    // u ucitana ostrva
-    Model ostrvo1("resources/objects/balon/Textures/Air_Balloon.obj", true);
-    ostrvo1.SetShaderTextureNamePrefix("material.");
-    Model lightBall("resources/objects/ball/ball.obj");
+    Model balon("resources/objects/balon/Textures/Air_Balloon.obj", true);
+    balon.SetShaderTextureNamePrefix("material.");
+    Model lightBall("resources/objects/ball/ball.obj",true);
     lightBall.SetShaderTextureNamePrefix("material.");
+    Model airplane("resources/objects/airplane/source/source/a380-2/A380.obj",true);
+    airplane.SetShaderTextureNamePrefix("material.");
 
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
@@ -272,27 +257,29 @@ int main() {
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
     float planeVertices[] = {
-            // positions                       // normals            // texcoords
-            20.0f, -0.5f,  20.0f,  0.0f, 1.0f, 0.0f,  20.0f,  0.0f,
-            -20.0f, -0.5f,  20.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
-            -20.0f, -0.5f, -20.0f,  0.0f, 1.0f, 0.0f,   0.0f, 20.0f,
+            // positions            // normals         // texcoords
+            10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+            -10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+            -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
 
-            20.0f, -0.5f,  20.0f,  0.0f, 1.0f, 0.0f,  20.0f,  0.0f,
-            -20.0f, -0.5f, -20.0f,  0.0f, 1.0f, 0.0f,   0.0f, 20.0f,
-            20.0f, -0.5f, -20.0f,  0.0f, 1.0f, 0.0f,  20.0f, 20.0f
+            10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+            -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+            10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
     };
-
-    float tatamiVertices[] = {
-            // positions                     // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
-            10.0f, 0.0f,  10.0f,  1.0f, 0.0f,
-            -10.0f, 0.0f,  10.0f,  0.0f, 0.0f,
-            -10.0f, 0.0f, -10.0f,  0.0f, 1.0f,
-
-            10.0f, 0.0f,  10.0f,  1.0f, 0.0f,
-            -10.0f, 0.0f, -10.0f,  0.0f, 1.0f,
-            10.0f, 0.0f, -10.0f,  1.0f, 1.0f
-    };
-
+    // plane VAO
+    unsigned int planeVAO, planeVBO;
+    glGenVertexArrays(1, &planeVAO);
+    glGenBuffers(1, &planeVBO);
+    glBindVertexArray(planeVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glBindVertexArray(0);
 
     float skyboxVertices[] = {
             // aPos
@@ -340,7 +327,6 @@ int main() {
     };
 
     // configuring Skybox
-
     unsigned int skyboxVAO, skyboxVBO;
     glGenVertexArrays(1, &skyboxVAO);
     glGenBuffers(1, &skyboxVBO);
@@ -359,21 +345,16 @@ int main() {
             FileSystem::getPath("resources/textures/skybox2/bottom.jpg"),
             FileSystem::getPath("resources/textures/skybox2/left.jpg"),
             FileSystem::getPath("resources/textures/skybox2/right.jpg")
-
-
     };
     stbi_set_flip_vertically_on_load(true);
 
     unsigned int cubemapTexture = loadCubemap(faces);
 
     // configure shaders
-
-//    shader.use();
-//    shader.setInt("Tex", 0);
+    ourShader.use();
 
     skyboxShader.use();
-    skyboxShader.setInt("skyboxTex", 0);
-
+    skyboxShader.setInt("skybox", 0);
 
     bloomShader.use();
     bloomShader.setInt("image", 0);
@@ -383,60 +364,16 @@ int main() {
     hdrShader.setInt("bloomBlur", 1);
 
 
-    // plane VAO
-    unsigned int planeVAO, planeVBO;
-    glGenVertexArrays(1, &planeVAO);
-    glGenBuffers(1, &planeVBO);
-    glBindVertexArray(planeVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glBindVertexArray(0);
-
-    // tatami VAO
-    unsigned int tatamiVAO, tatamiVBO;
-    glGenVertexArrays(1, &tatamiVAO);
-    glGenBuffers(1, &tatamiVBO);
-    glBindVertexArray(tatamiVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, tatamiVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(tatamiVertices), &tatamiVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glBindVertexArray(0);
-
     // load textures
     // -------------
     unsigned int floorTexture = loadTexture(FileSystem::getPath("resources/textures/parket.jpg").c_str());
-    unsigned int tatamiTexture = loadTexture(FileSystem::getPath("resources/textures/tatamibezteksta.jpg").c_str());
-
-
-    // shader configuration
-    // --------------------
-  //  svetloShader.use();
-   // svetloShader.setInt("texture1", 0);
-    textureShader.use();
-    textureShader.setInt("texture1",0);
-
-
-
-
-    // lighting info
-    // -------------
-  //  glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
-
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     float lin = 0.14f;
     float kvad = 0.07f;
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window)) {
@@ -450,14 +387,10 @@ int main() {
         // -----
         processInput(window);
 
-
         // render
         // ------
         glClearColor(programState->clearColor.r, programState->clearColor.g, programState->clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-        // setting values for aloeVera shader
 
         //Object and model shader
         ourShader.use();
@@ -505,8 +438,6 @@ int main() {
         ourShader.setFloat("pointLight[3].linear", lin);
         ourShader.setFloat("pointLight[3].quadratic", kvad);
 
-
-
         ourShader.setVec3("viewPosition", camera.Position);
         ourShader.setFloat("material.shininess", 32.0f);
         // view/projection transformations
@@ -516,92 +447,55 @@ int main() {
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
 
-
-
         //Enabling back face culling
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
+
         //****************************************************************************************
-        // island two POZADI
+        // baloniii
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::mat4(1.0f);
         model = glm::translate(model,glm::vec3(0.0f,(10.0f+ sin(glfwGetTime())/6),-10.0f));
         model = glm::scale(model, glm::vec3(1.2f,1.5f,1.2f));
         ourShader.setMat4("model", model);
-        ostrvo1.Draw(ourShader);
+        balon.Draw(ourShader);
 
         model = glm::mat4(1.0f);
         model = glm::mat4(1.0f);
         model = glm::translate(model,glm::vec3(-1.0f,(5.0f+ sin(glfwGetTime())/6),7.0f));
         model = glm::scale(model, glm::vec3(1.2f,1.5f,1.2f));
         ourShader.setMat4("model", model);
-        ostrvo1.Draw(ourShader);
+        balon.Draw(ourShader);
 
         model = glm::mat4(1.0f);
         model = glm::translate(model,glm::vec3(10.0f,(7.0f+ sin(glfwGetTime())/6),4.0f));
         model = glm::scale(model, glm::vec3(1.2f,1.5f,1.2f));
         ourShader.setMat4("model", model);
-        ostrvo1.Draw(ourShader);
+        balon.Draw(ourShader);
 
-        //ovo je ono sranje za masku za modele da bi bloom bio vise fanki
+        //ovo je varijanta da je avioncic prikacen za kameru. hocu i varijantu da mogu da kontrolisem avion na strelice
 
+        aeroPos = camera.Position - glm::vec3(0.0f,10.0f,15.5f);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model,aeroPos);
+        model = glm::scale(model, glm::vec3(0.4f,0.5f,0.4f));
+        ourShader.setMat4("model", model);
+        airplane.Draw(ourShader);
 
-
-      /*  svetloShader.use();
-        svetloShader.setMat4("projection", projection);
-        svetloShader.setMat4("view", view);
-        // set light uniforms
-        svetloShader.setVec3("viewPos", programState->camera.Position);
-        svetloShader.setVec3("lightPos", lightPos);
-        svetloShader.setInt("blinn", blinn); */
-
-
-
-        /*// floor
+        //floor
         glBindVertexArray(planeVAO);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, floorTexture);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        // tatami
-        textureShader.use();
-        textureShader.setMat4("view", view);
-        textureShader.setMat4("projection", projection);
-        glBindVertexArray(tatamiVAO);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, tatamiTexture);
-        textureShader.setMat4("model", glm::mat4(1.0f));
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        // glBindVertexArray(0); */
-
-
-      /*  glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
-        glFrontFace(GL_CW);
-        lightSource.use();
-        model = glm::translate(model, lightPos);
-        model = glm::scale(model, glm::vec3(1.0f));
-        lightSource.setMat4("view", view);
-        lightSource.setMat4("projection", projection);
-        lightSource.setMat4("model", model);
-        lightBall.Draw(lightSource); */
-
-      /*  for (int i = 0; i < spotlights->length(); i++) {
-            lightSource.use();
-            model = glm::mat4(1.0f);
-            model = glm::translate(model, spotlights[i]);
-            model = glm::scale(model, glm::vec3(1.0f / 20));
-            lightSource.setMat4("model", model);
-            lightBall.Draw(lightSource);
-        } */
-
         //draw skybox as last
+
         glDepthFunc(GL_LEQUAL);
         skyboxShader.use();
-        //model = glm::mat4(1.0f);
-        projection = glm::perspective(glm::radians(programState->camera.Zoom),
+        model = glm::mat4(1.0f);
+       projection = glm::perspective(glm::radians(camera.Zoom),
                                       (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
-        view = glm::mat4(glm::mat3(programState->camera.GetViewMatrix()));
+        view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
         skyboxShader.setMat4("view", view);
         skyboxShader.setMat4("projection", projection);
 
@@ -614,6 +508,7 @@ int main() {
         glDepthFunc(GL_LESS); //depth function back to normal state.
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
         //*********************************************
         //load pingpong
         bool horizontal = true, first_iteration = true;
@@ -632,6 +527,7 @@ int main() {
                 first_iteration = false;
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
         // **********************************************
         // load hdr and bloom
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -646,17 +542,20 @@ int main() {
         renderQuad();
 
 
+        if (programState->ImGuiEnabled) {
+            DrawImGui(programState);
+        }
+
         //  std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
-
-
-
-
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+
     }
+
 
     programState->SaveToFile("resources/program_state.txt");
     delete programState;
@@ -665,6 +564,7 @@ int main() {
     ImGui::DestroyContext();
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
+
     glfwTerminate();
     return 0;
 }
@@ -747,6 +647,16 @@ void processInput(GLFWwindow *window) {
     {
         exposure += 0.005f;
     }
+
+    //aero
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+        aeroPos.y += deltaTime;
+        std::cout << aeroPos.y << std::endl;
+    }
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        aeroPos.y -= deltaTime;
+
+
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -794,6 +704,7 @@ unsigned int loadCubemap(vector<std::string> faces)
         unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
         if (data)
         {
+          //  std::cout << "ucitana slika " << faces[i] << std::endl;
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
             stbi_image_free(data);
         }
@@ -848,4 +759,43 @@ unsigned int loadTexture(char const * path)
     }
 
     return textureID;
+}
+
+
+void DrawImGui(ProgramState *programState) {
+
+    //std::cout << "treba da radi " << std::endl;
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+
+    {
+        static float f = 0.0f;
+        ImGui::Begin("Hello window");
+        ImGui::Text("Find three hot air balloons. "
+                    "That's where the finish line is.");
+        ImGui::SliderFloat("Float slider", &f, 0.0, 1.0);
+        ImGui::ColorEdit3("Background color", (float *) &programState->clearColor);
+        ImGui::DragFloat3("Backpack position", (float*)&programState->backpackPosition);
+        ImGui::DragFloat("Backpack scale", &programState->backpackScale, 0.05, 0.1, 4.0);
+
+        ImGui::DragFloat("pointLight.constant", &programState->pointLight.constant, 0.05, 0.0, 1.0);
+        ImGui::DragFloat("pointLight.linear", &programState->pointLight.linear, 0.05, 0.0, 1.0);
+        ImGui::DragFloat("pointLight.quadratic", &programState->pointLight.quadratic, 0.05, 0.0, 1.0);
+        ImGui::End();
+    }
+
+    {
+        ImGui::Begin("Camera info");
+        const Camera& c = programState->camera;
+        ImGui::Text("Camera position: (%f, %f, %f)", c.Position.x, c.Position.y, c.Position.z);
+        ImGui::Text("(Yaw, Pitch): (%f, %f)", c.Yaw, c.Pitch);
+        ImGui::Text("Camera front: (%f, %f, %f)", c.Front.x, c.Front.y, c.Front.z);
+        ImGui::Checkbox("Camera mouse update", &programState->CameraMouseMovementUpdateEnabled);
+        ImGui::End();
+    }
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }

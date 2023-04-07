@@ -1,0 +1,206 @@
+newmtl A380:A380:aileron_lSG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd a380_wing_2_t.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:alphaSG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd udontknowwhatitis.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:cockpitSG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd airbus_3_c.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:cockpitSG3
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd a340_vc01.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:cockpitSG5
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd airbus_1_c.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:cockpitSG7
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd airbus_2_c.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:elevator_lSG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd a380_1_t.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:elevator_lSG3
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd a380_misc_1.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:gear_rSG1
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:glassSG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 0.48 0.48 0.48
+map_Kd a380_fuse_1_t.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:interiorSG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd door_t.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:interiorSG3
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd int_2_t.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:miscSG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd panel1.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:miscSG3
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd airbus_4_c.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:misc_aSG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd a380_fuse_1_t.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:misc_aSG3
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd a380_misc_2_t.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:misc_partsSG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd a380_fuse_2_t.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:misciSG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd int_1_t.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:misciSG3
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd int_3_t.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:misciiSG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd cockp2_t.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:wingsSG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd a380_fuse_3_t.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:wingsSG3
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd a380_wing_1_t.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
+newmtl A380:A380:wingsSG5
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd a380_2_t.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 18.00
