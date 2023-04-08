@@ -11,9 +11,9 @@ Projekat u kom je cilj preleteti avionom do finish-a
 7. ALT+SHIFT+F10 -> project_base -> run
 
 # Komande
-SPACE - show/hide ImGui frames
-WASD - kontrole za avion
-UP/DOWN - gore/dole
-I - ubrzanje kretanja aviona
-H - HDR
-B - BLOOM
+1. SPACE - show/hide ImGui frames
+2. WASD - kontrole za avion
+3. UP/DOWN - gore/dole
+4. I - ubrzanje kretanja aviona
+5. H - HDR
+6. B - BLOOM
