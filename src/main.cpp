@@ -34,6 +34,7 @@ bool hdr = true;
 bool hdrKeyPressed = false;
 bool bloom = false;
 bool bloomKeyPressed = false;
+int increaseSpeed = 1.0f;
 float exposure = 1.0f;
 
 // camera
@@ -63,11 +64,10 @@ struct PointLight {
 
 struct ProgramState {
     glm::vec3 clearColor = glm::vec3(0);
-    bool ImGuiEnabled = false;
+    bool ImGuiEnabled = true;
     Camera camera;
     bool CameraMouseMovementUpdateEnabled = true;
     glm::vec3 backpackPosition = glm::vec3(0.0f);
-    float backpackScale = 1.0f;
     PointLight pointLight;
     ProgramState()
             : camera(glm::vec3(-10.0f, -10.0f, -13.0f)) {}
@@ -110,6 +110,7 @@ void ProgramState::LoadFromFile(std::string filename) {
 ProgramState *programState;
 
 void DrawImGui(ProgramState *programState);
+void CongratulationsImGui(ProgramState *programState);
 
 int main() {
     // glfw: initialize and configure
@@ -162,6 +163,7 @@ int main() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
 
+
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
@@ -177,15 +179,36 @@ int main() {
     Shader hdrShader("resources/shaders/hdr.vs","resources/shaders/hdr.fs");
     Shader bloomShader("resources/shaders/bloom.vs","resources/shaders/bloom.fs");
 
+    // Finish Line
+    float vertices[] = {
+            // positions         // texture Coords (swapped y coordinates because texture is flipped upside down)
+            0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+            0.0f, -0.5f,  0.0f,  0.0f,  1.0f,
+            1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
 
-    // setting point light
-    glm::vec3 spotlights[] = {
-            glm::vec3(-6.0f, 1.3f, 2.0f),
-            glm::vec3(-4.0f, 0.5f, -3.0f),
-            glm::vec3(7.0f, 1.2f, 6.0f)
+            0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+            1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+            1.0f,  0.5f,  0.0f,  1.0f,  0.0f
     };
 
-    // definisanje svega sto treba za rad sa bloom i HDR
+    //VAO i VBO for finish line
+    unsigned int flVAO, flVBO;
+    glGenVertexArrays(1, &flVAO);
+    glGenBuffers(1, &flVBO);
+    glBindVertexArray(flVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, flVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glBindVertexArray(0);
+
+    stbi_set_flip_vertically_on_load(false);
+
+    glm::vec3 finishLine = glm::vec3(-4.0f,8.0f,-60.0f);
+
+    // everything for bloom and hdr
     unsigned int hdrFBO;
     glGenFramebuffers(1, &hdrFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
@@ -251,37 +274,8 @@ int main() {
     pointLight.linear = 0.09f;
     pointLight.quadratic = 0.032f;
 
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
-    float planeVertices[] = {
-            // positions                       // normals            // texcoords
-            20.0f, -0.5f,  20.0f,  0.0f, 1.0f, 0.0f,  20.0f,  0.0f,
-            -20.0f, -0.5f,  20.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
-            -20.0f, -0.5f, -20.0f,  0.0f, 1.0f, 0.0f,   0.0f, 20.0f,
-
-            20.0f, -0.5f,  20.0f,  0.0f, 1.0f, 0.0f,  20.0f,  0.0f,
-            -20.0f, -0.5f, -20.0f,  0.0f, 1.0f, 0.0f,   0.0f, 20.0f,
-            20.0f, -0.5f, -20.0f,  0.0f, 1.0f, 0.0f,  20.0f, 20.0f
-    };
-
-    // plane VAO
-    unsigned int planeVAO, planeVBO;
-    glGenVertexArrays(1, &planeVAO);
-    glGenBuffers(1, &planeVBO);
-    glBindVertexArray(planeVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glBindVertexArray(0);
-
     // load textures
-    // -------------
-    unsigned int floorTexture = loadTexture(FileSystem::getPath("resources/textures/parket.jpg").c_str());
+    unsigned int finishTexture = loadTexture(FileSystem::getPath("resources/textures/finish.png").c_str());
 
     float skyboxVertices[] = {
             // aPos
@@ -354,8 +348,6 @@ int main() {
 
     // configure shaders
     ourShader.use();
-    textureShader.use();
-    textureShader.setInt("texture1",0);
 
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
@@ -366,9 +358,6 @@ int main() {
     hdrShader.use();
     hdrShader.setInt("hdrBuffer", 0);
     hdrShader.setInt("bloomBlur", 1);
-
-    // draw in wireframe
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     float lin = 0.14f;
     float kvad = 0.07f;
@@ -448,7 +437,7 @@ int main() {
         ourShader.setMat4("view", view);
 
         //****************************************************************************************
-        // baloniii
+        // baloooooons
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::mat4(1.0f);
         model = glm::translate(model,glm::vec3(0.0f,(10.0f+ sin(glfwGetTime())/6),-10.0f));
@@ -468,8 +457,7 @@ int main() {
         ourShader.setMat4("model", model);
         balon.Draw(ourShader);
 
-        //ovo je varijanta da je avioncic prikacen za kameru. hocu i varijantu da mogu da kontrolisem avion na strelice
-
+        //version where aeroplane is fixed to the camera
         aeroPos = camera.Position - glm::vec3(0.0f,10.0f,15.5f);
         model = glm::mat4(1.0f);
         model = glm::translate(model,aeroPos);
@@ -477,21 +465,24 @@ int main() {
         ourShader.setMat4("model", model);
         airplane.Draw(ourShader);
 
-
         //Enabling back face culling
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
 
+        //settig up the finish line
         textureShader.use();
-        // floor
-        glBindVertexArray(planeVAO);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, floorTexture);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        textureShader.setMat4("projection", projection);
+        textureShader.setMat4("view", view);
 
+        glBindVertexArray(flVAO);
+        glBindTexture(GL_TEXTURE_2D, finishTexture);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model,finishLine);
+        model = glm::scale(model, glm::vec3(15.0f,13.0f,15.0f));
+        textureShader.setMat4("model",model);
+        glDrawArrays(GL_TRIANGLES,0,6);
 
         //draw skybox as last
-
        glDepthFunc(GL_LEQUAL);
         skyboxShader.use();
         model = glm::mat4(1.0f);
@@ -546,9 +537,13 @@ int main() {
 
         if (programState->ImGuiEnabled) {
             DrawImGui(programState);
+          //  CongratulationsImGui(programState);
         }
 
-        //  std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
+        if(aeroPos.z <= finishLine.z) {
+            CongratulationsImGui(programState);
+        }
+
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -608,8 +603,13 @@ void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
+    if(glfwGetKey(window,GLFW_KEY_I) == GLFW_PRESS){
+        increaseSpeed = 5.0f;
+    }else
+        increaseSpeed = 1.0f;
+
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime);
+        camera.ProcessKeyboard(FORWARD, deltaTime * increaseSpeed);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         camera.ProcessKeyboard(BACKWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
@@ -705,7 +705,6 @@ unsigned int loadCubemap(vector<std::string> faces)
         unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
         if (data)
         {
-          //  std::cout << "ucitana slika " << faces[i] << std::endl;
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
             stbi_image_free(data);
         }
@@ -765,9 +764,12 @@ unsigned int loadTexture(char const * path)
 
 void DrawImGui(ProgramState *programState) {
 
+    std::cout << programState->ImGuiEnabled << std::endl;
+
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+
 
 
     {
@@ -775,6 +777,28 @@ void DrawImGui(ProgramState *programState) {
         ImGui::Begin("Hello window");
         ImGui::Text("Use WASD and UP/DOWN arrays to move the plane. ");
         ImGui::Text("Fly away to the finish line :)");
+        ImGui::Text("The speed increases if you press I.");
+        ImGui::Text("Change sky using H and/or B");
+        ImGui::Text("Press SPACE to hide this box.");
+        ImGui::End();
+    }
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+
+void CongratulationsImGui(ProgramState *programState) {
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    {
+        static float f = 0.0f;
+        ImGui::Begin("You did it!");
+        ImGui::Text("Congratulations! You are ready to fly across Borca");
+        ImGui::Text("Press ESC to exit.");
         ImGui::End();
     }
 
