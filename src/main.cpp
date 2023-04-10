@@ -38,7 +38,7 @@ int increaseSpeed = 1.0f;
 float exposure = 1.0f;
 
 // camera
-Camera camera(glm::vec3(4.0f, 5.0f, 22.0f));
+Camera camera(glm::vec3(4.0f, 5.0f, 25.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -381,6 +381,9 @@ int main() {
         glClearColor(programState->clearColor.r, programState->clearColor.g, programState->clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+
         //Object and model shader
         ourShader.use();
 
@@ -440,19 +443,19 @@ int main() {
         // baloooooons
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(0.0f,(10.0f+ sin(glfwGetTime())/6),-10.0f));
+        model = glm::translate(model,glm::vec3(-2.0f,(10.0f+ sin(glfwGetTime())/6),-15.0f));
         model = glm::scale(model, glm::vec3(1.2f,1.5f,1.2f));
         ourShader.setMat4("model", model);
         balon.Draw(ourShader);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(-1.0f,(5.0f+ sin(glfwGetTime())/6),7.0f));
+        model = glm::translate(model,glm::vec3(10.0f,(5.0f+ sin(glfwGetTime())/6),1.0f));
         model = glm::scale(model, glm::vec3(1.2f,1.5f,1.2f));
         ourShader.setMat4("model", model);
         balon.Draw(ourShader);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model,glm::vec3(10.0f,(7.0f+ sin(glfwGetTime())/6),4.0f));
+        model = glm::translate(model,glm::vec3(0.0f,(7.0f+ sin(glfwGetTime())/6),15.0f));
         model = glm::scale(model, glm::vec3(1.2f,1.5f,1.2f));
         ourShader.setMat4("model", model);
         balon.Draw(ourShader);
@@ -795,7 +798,7 @@ void CongratulationsImGui(ProgramState *programState) {
     {
         static float f = 0.0f;
         ImGui::Begin("You did it!");
-        ImGui::Text("Congratulations! You are ready to fly across the ocean");
+        ImGui::Text("Congratulations! You are ready to fly across Borca");
         ImGui::Text("Press ESC to exit.");
         ImGui::End();
     }
