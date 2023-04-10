@@ -481,7 +481,7 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, finishTexture);
         model = glm::mat4(1.0f);
         model = glm::translate(model,finishLine);
-        model = glm::scale(model, glm::vec3(15.0f,13.0f,15.0f));
+        model = glm::scale(model, glm::vec3(30.0f,26.0f,30.0f));
         textureShader.setMat4("model",model);
         glDrawArrays(GL_TRIANGLES,0,6);
 
@@ -798,7 +798,8 @@ void CongratulationsImGui(ProgramState *programState) {
     {
         static float f = 0.0f;
         ImGui::Begin("You did it!");
-        ImGui::Text("Congratulations! You are ready to fly across Borca");
+        ImGui::Text("Congratulations! You completed the training programme.");
+        ImGui::Text("You are ready to fly over Borca");
         ImGui::Text("Press ESC to exit.");
         ImGui::End();
     }
