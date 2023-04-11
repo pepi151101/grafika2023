@@ -799,7 +799,7 @@ void CongratulationsImGui(ProgramState *programState) {
         static float f = 0.0f;
         ImGui::Begin("You did it!");
         ImGui::Text("Congratulations! You completed the training programme.");
-        ImGui::Text("You are ready to fly over Borca");
+        ImGui::Text("You are ready to fly across the ocean");
         ImGui::Text("Press ESC to exit.");
         ImGui::End();
     }
