@@ -777,7 +777,7 @@ void DrawImGui(ProgramState *programState) {
         static float f = 0.0f;
         ImGui::Begin("Hello window");
         ImGui::Text("Use WASD and UP/DOWN arrays to move the plane. ");
-        ImGui::Text("Fly away to the finish line and don't worry about the balloons :)");
+        ImGui::Text("Fly away to the finish line and avoid the baloons :)");
         ImGui::Text("The speed increases if you press I.");
         ImGui::Text("Change sky using H and/or B");
         ImGui::Text("Press SPACE to hide this box.");
