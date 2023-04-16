@@ -18,3 +18,7 @@ Video snimak: https://drive.google.com/file/d/1hIXBVMAfZD5l82zHmQ5A7JaZ4IbGG1q9/
 4. I - ubrzanje kretanja aviona
 5. H - HDR
 6. B - BLOOM
+
+# Implementirane oblasti
+Grupa A: skybox  
+Grupa B: HDR i bloom
