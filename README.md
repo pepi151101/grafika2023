@@ -1,5 +1,5 @@
 # project_base
-Projekat u kom je cilj preleteti avionom do finish-a '\n'
+Projekat u kom je cilj preleteti avionom do finish-a  
 Video snimak: https://drive.google.com/file/d/1hIXBVMAfZD5l82zHmQ5A7JaZ4IbGG1q9/view?usp=sharing
 
 # Uputstvo
