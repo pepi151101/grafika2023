@@ -22,3 +22,4 @@ Video snimak: https://drive.google.com/file/d/1hIXBVMAfZD5l82zHmQ5A7JaZ4IbGG1q9/
 # Implementirane oblasti
 Grupa A: skybox  
 Grupa B: HDR i bloom
+*Ukoliko pri ukljucivanju bloom-a ceo ekran pobeli/pocrni, smanjiti vrednosti u weight vektoru u bloom.fs na (0.001, 0.001, 0.002, 0.001, 0.001);
