@@ -1,5 +1,6 @@
 # project_base
-Projekat u kom je cilj preleteti avionom do finish-a
+Projekat u kom je cilj preleteti avionom do finish-a '\n'
+Video snimak: https://drive.google.com/file/d/1hIXBVMAfZD5l82zHmQ5A7JaZ4IbGG1q9/view?usp=sharing
 
 # Uputstvo
 1. `git clone git@github.com:pepi151101/grafika2023.git`
